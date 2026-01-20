@@ -187,7 +187,7 @@ def predict():
     scaler = MinMaxScaler()
     scaled = scaler.fit_transform(df[features])
 
-    lookback = 60
+    lookback = 27
     close_idx = features.index("close")
 
     X, y = [], []
@@ -202,7 +202,7 @@ def predict():
         return jsonify({"error": "Yetersiz veri"}), 400
 
     # 🔒 GÜVENLİ TEST GÜN SAYISI
-    test_days = min(100, len(X) - 1)
+    test_days = 27
 
     # ---------------------------
     # MODEL (TÜM VERİYLE EĞİT)
@@ -211,7 +211,6 @@ def predict():
         LSTM(50, input_shape=(X.shape[1], X.shape[2])),
         Dense(1)
     ])
-
     model.compile(optimizer="adam", loss="mse")
     model.fit(X, y, epochs=10, batch_size=8, verbose=0)
 
@@ -219,7 +218,6 @@ def predict():
     # 1️⃣ TEST (GERÇEKLE ÖRTÜŞEN)
     # ---------------------------
     fit_preds = model.predict(X[:test_days], verbose=0)
-
     temp = np.zeros((len(fit_preds), len(features)))
     temp[:, close_idx] = fit_preds.flatten()
     fit_close = scaler.inverse_transform(temp)[:, close_idx]
@@ -230,12 +228,10 @@ def predict():
     rolling_input = X[test_days - 1].copy()
     future_preds = []
 
-    steps = len(df) - (lookback + test_days)
-
-    for _ in range(steps):
+    future_days = len(df) - (lookback + test_days)  # kalan tüm günler için tahmin
+    for _ in range(future_days):
         p = model.predict(rolling_input[np.newaxis, :, :], verbose=0)[0, 0]
         future_preds.append(p)
-
         rolling_input = np.roll(rolling_input, -1, axis=0)
         rolling_input[-1, close_idx] = p
 
@@ -244,14 +240,20 @@ def predict():
     future_close = scaler.inverse_transform(temp2)[:, close_idx]
 
     # ---------------------------
-    # TAHMİN ÇİZGİSİ (TEK PARÇA)
     # ---------------------------
-    pred_line = np.full(len(df), np.nan)
+    # TAHMİN ÇİZGİSİ (AYRI TEST VE FUTURE)
+    # ---------------------------
+    test_line = np.full(len(df), np.nan)
+    future_line = np.full(len(df), np.nan)
 
-    pred_line[lookback:lookback + test_days] = fit_close
+    # Test tahminlerini yerleştir (geçmiş veriye karşı modelin testi)
+    test_len = len(fit_close)
+    test_line[lookback:lookback + test_len] = fit_close[:test_len]
 
-    start = lookback + test_days
-    pred_line[start:start + len(future_close)] = future_close
+    # Future tahminlerini yerleştir (geleceğe doğru tahmin)
+    future_len = len(future_close)
+    future_start = lookback + test_days
+    future_line[future_start:future_start + future_len] = future_close[:future_len]
 
     # ---------------------------
     # GRAPH
@@ -261,7 +263,8 @@ def predict():
 
     plt.figure(figsize=(12, 6))
     plt.plot(df["time"], df["close"], label="Gerçek Fiyat", linewidth=2)
-    plt.plot(df["time"], pred_line, label="Model Tahmini", linewidth=2)
+    plt.plot(df["time"], test_line, label="Test Tahmini", linewidth=2, color="orange")
+    plt.plot(df["time"], future_line, label="Future Tahmini", linewidth=2, color="green", linestyle="--")
 
     plt.title(f"{symbol} - Son 1 Yıl Fiyat & Tahmin")
     plt.xlabel("Tarih")
@@ -276,6 +279,7 @@ def predict():
         "symbol": symbol,
         "graph": f"http://localhost:5000/graph/{img}"
     })
+
 
 # ---------------------------
 # RUN
