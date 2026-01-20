@@ -1,0 +1,105 @@
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* BASE */
+html {
+  font-size: 14px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  background-color: #f4f6f8;
+}
+
+/* MAIN CONTAINER */
+.container {
+  max-width: 1140px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* TOP BAR */
+.container-top {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 40px;
+  padding: 0 20px;
+}
+
+.container-top h1 {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+/* LOGIN / SIGNUP BUTTONS */
+.container-top div {
+  display: flex;
+  gap: 15px;
+}
+
+button {
+  border: none;
+  padding: 10px 22px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+button:hover {
+  opacity: 0.85;
+}
+
+button.login,
+button.signup {
+  background-color: black;
+  color: white;
+}
+
+/* CONTENT */
+.container-bottom {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin-top: 80px;
+}
+
+.container-bottom h2 {
+  text-align: center;
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+/* INPUT */
+.container-bottom input {
+  width: 320px;
+  margin: 0 auto 15px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+/* RUN BUTTON */
+button.result {
+  width: 320px;
+  margin: 0 auto;
+  background-color: green;
+  color: white;
+}
+
+/* IMAGE RESULT */
+.container img {
+  display: block;
+  max-width: 600px;
+  width: 100%;
+  margin: 40px auto;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
